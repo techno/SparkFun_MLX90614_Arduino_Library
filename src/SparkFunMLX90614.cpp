@@ -259,7 +259,7 @@ uint32_t IRTherm::getIDL(void)
 	return ((uint32_t)id[1] << 16) | id[0];
 }
 
-uint8_t IRTherm::sleep(void)
+uint8_t IRTherm::sleep(uint8_t pinSDA, uint8_t pinSCL)
 {
 	// Calculate a crc8 value.
 	// Bits sent: _deviceAddress (shifted left 1) + 0xFF
@@ -271,28 +271,29 @@ uint8_t IRTherm::sleep(void)
 	Wire.write(MLX90614_REGISTER_SLEEP);
 	Wire.write(crc);
 	Wire.endTransmission(true);
-	
+	Wire.end();
+
 	// Set the SCL pin LOW, and SDA pin HIGH (should be pulled up)
-	pinMode(SCL, OUTPUT);
-	digitalWrite(SCL, LOW);
-	pinMode(SDA, INPUT);
+	pinMode(pinSCL, OUTPUT);
+	digitalWrite(pinSCL, LOW);
+	pinMode(pinSDA, INPUT_PULLUP);
 }
 
-uint8_t IRTherm::wake(void)
+uint8_t IRTherm::wake(uint8_t pinSDA, uint8_t pinSCL)
 {
 	// Wake operation from datasheet
 	Wire.end(); // stop i2c bus to send wake up request via digital pins
-	pinMode(SCL, INPUT); // SCL high
-	pinMode(SDA, OUTPUT);
-	digitalWrite(SDA, LOW); // SDA low
+	pinMode(pinSCL, INPUT_PULLUP); // SCL high
+	pinMode(pinSDA, OUTPUT);
+	digitalWrite(pinSDA, LOW); // SDA low
 	delay(50); // delay at least 33ms
-	pinMode(SDA, INPUT); // SDA high
+	pinMode(pinSDA, INPUT_PULLUP); // SDA high
 	delay(250);
 	// PWM to SMBus mode:
-	pinMode(SCL, OUTPUT);
-	digitalWrite(SCL, LOW); // SCL low
+	pinMode(pinSCL, OUTPUT);
+	digitalWrite(pinSCL, LOW); // SCL low
 	delay(10); // Delay at least 1.44ms
-	pinMode(SCL, INPUT); // SCL high
+	pinMode(pinSCL, INPUT_PULLUP); // SCL high
 	Wire.begin();
 }
 
